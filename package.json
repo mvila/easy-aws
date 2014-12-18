@@ -16,6 +16,6 @@
     "aws-sdk": "~2.0.0-rc11"
   },
   "peerDependencies": {
-    "kinda-config": "~0"
+    "kinda-config": "https://github.com/kinda/kinda-config/tarball/master"
   }
 }
