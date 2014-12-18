@@ -1,0 +1,21 @@
+{
+  "name": "kinda-aws",
+  "version": "0.1.0",
+  "description": "...",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kinda/kinda-aws"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Manuel Vila <mvila@3base.com>",
+  "license": "MIT",
+  "dependencies": {
+    "aws-sdk": "~2.0.0-rc11"
+  },
+  "peerDependencies": {
+    "kinda-config": "~0"
+  }
+}
