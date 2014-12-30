@@ -13,7 +13,7 @@
   "author": "Manuel Vila <mvila@3base.com>",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "~2.0.0-rc11",
-    "kinda-config": "https://github.com/kinda/kinda-config/tarball/master"
+    "aws-sdk": "^2.1.4",
+    "kinda-config": "kinda/kinda-config"
   }
 }
