@@ -15,5 +15,8 @@
   "dependencies": {
     "aws-sdk": "^2.1.4",
     "kinda-config": "kinda/kinda-config"
+  },
+  "devDependencies": {
+    "co": "^4.1.0"
   }
 }
