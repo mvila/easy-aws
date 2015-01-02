@@ -18,7 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.1.4",
-    "kinda-config": "^0.1.0"
+    "kinda-config": "^0.2.2"
   },
   "devDependencies": {
     "co": "^4.1.0"
