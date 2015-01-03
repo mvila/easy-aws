@@ -15,14 +15,14 @@ co(function *() {
   // });
   // console.log(result);
 
-  // // === Describe stream ===
-  // var result = yield logs.describeLogStreams({
-  //   logGroupName: 'test-group',
-  //   logStreamNamePrefix: 'test-stream'
-  // });
-  // // console.log(result);
-  // var sequenceToken = result.logStreams[0].uploadSequenceToken;
-  // // console.log(sequenceToken);
+  // === Describe stream ===
+  var result = yield logs.describeLogStreams({
+    logGroupName: 'test-group',
+    logStreamNamePrefix: 'test-stream'
+  });
+  console.log(result);
+  var sequenceToken = result.logStreams[0].uploadSequenceToken;
+  // console.log(sequenceToken);
 
   // // === Put event ===
   // var result = yield logs.putLogEvents({
