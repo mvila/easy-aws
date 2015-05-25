@@ -14,4 +14,7 @@ pids
 node_modules
 
 # AWS config
-config.js
+examples/config.js
+
+# Build directory
+lib

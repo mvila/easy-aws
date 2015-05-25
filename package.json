@@ -1,13 +1,15 @@
 {
   "name": "kinda-aws",
-  "version": "0.2.6",
+  "version": "0.3.0",
   "description": "...",
   "repository": {
     "type": "git",
     "url": "git://github.com/kinda/kinda-aws"
   },
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
+    "compile": "babel src --out-dir lib",
+    "prepublish": "npm run compile",
     "release": "(git checkout --quiet master && test -z \"$(git status --porcelain)\" && npm version $npm_config_release_type && git push --follow-tags) || echo \"An error occured (unclean repository?)\"",
     "release-patch": "npm run release --release-type=patch",
     "release-minor": "npm run release --release-type=minor",
@@ -17,10 +19,12 @@
   "author": "Manuel Vila <mvila@3base.com>",
   "license": "MIT",
   "dependencies": {
-    "aws-sdk": "^2.1.4",
-    "kinda-config": "^0.2.2"
+    "aws-sdk": "^2.1.30",
+    "kinda-object": "^0.2.0",
+    "lodash": "^3.9.1"
   },
   "devDependencies": {
-    "co": "^4.1.0"
+    "babel": "^5.4.7",
+    "co": "^4.5.4"
   }
 }
