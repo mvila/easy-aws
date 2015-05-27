@@ -14,17 +14,21 @@
     "release-patch": "npm run release --release-type=patch",
     "release-minor": "npm run release --release-type=minor",
     "release-major": "npm run release --release-type=major",
-    "test": "echo \"Warning: no test specified\" && exit 0"
+    "test": "mocha --harmony --compilers js:babel/register --ui tdd"
   },
   "author": "Manuel Vila <mvila@3base.com>",
   "license": "MIT",
   "dependencies": {
     "aws-sdk": "^2.1.30",
+    "co": "^4.5.4",
+    "co-wait": "0.0.0",
     "kinda-object": "^0.2.0",
     "lodash": "^3.9.1"
   },
   "devDependencies": {
     "babel": "^5.4.7",
-    "co": "^4.5.4"
+    "chai": "^2.3.0",
+    "co-mocha": "^1.1.0",
+    "mocha": "^2.2.5"
   }
 }

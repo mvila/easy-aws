@@ -1,18 +1,11 @@
 'use strict';
 
+let _ = require('lodash');
+
 let common = {
-  getGlobalOptionsFromContext(context) {
-    let options = {};
-    if ('awsAccessKeyId' in context) {
-      options.accessKeyId = context.awsAccessKeyId;
-    }
-    if ('awsSecretAccessKey' in context) {
-      options.secretAccessKey = context.awsSecretAccessKey;
-    }
-    if ('awsRegion' in context) {
-      options.region = context.awsRegion;
-    }
-    return options;
+  makeClientOptions(options) {
+    let opts = _.pick(options, ['accessKeyId', 'secretAccessKey', 'region']);
+    return opts;
   }
 };
 

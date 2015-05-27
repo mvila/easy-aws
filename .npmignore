@@ -2,4 +2,4 @@
 src
 
 # AWS config
-examples/config.js
+aws-config.js
