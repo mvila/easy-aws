@@ -12,7 +12,6 @@ let S3 = KindaObject.extend('S3', function() {
   //   accessKeyId
   //   secretAccessKey
   //   region
-  //   bucket
   this.creator = function(options = {}) {
     if (options.debugMode) this.debugMode = true;
     let opts = common.makeClientOptions(options);
