@@ -1,5 +1,6 @@
-# ES6 source directory
+.eslintrc
+.npmignore
+.travis.yml
 src
-
-# AWS config
+test
 aws-config.js
