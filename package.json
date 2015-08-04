@@ -22,7 +22,7 @@
     "aws-sdk": "^2.1.30",
     "co": "^4.5.4",
     "co-wait": "0.0.0",
-    "kinda-object": "^0.2.0",
+    "kinda-object": "^0.3.0",
     "kinda-util": "^0.2.0",
     "lodash": "^3.9.1"
   },
