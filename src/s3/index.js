@@ -29,24 +29,24 @@ let S3 = KindaObject.extend('S3', function() {
     return bucket;
   };
 
-  this.deleteBucket = function *(name) {
+  this.deleteBucket = async function(name) {
     let bucket = this.getBucket(name, { createIfMissing: false });
-    yield bucket.delete();
+    await bucket.delete();
   };
 
-  this.getObject = function *(bucketName, key, options) {
+  this.getObject = async function(bucketName, key, options) {
     let bucket = this.getBucket(bucketName);
-    return yield bucket.getObject(key, options);
+    return await bucket.getObject(key, options);
   };
 
-  this.putObject = function *(bucketName, key, body, options) {
+  this.putObject = async function(bucketName, key, body, options) {
     let bucket = this.getBucket(bucketName);
-    return yield bucket.putObject(key, body, options);
+    return await bucket.putObject(key, body, options);
   };
 
-  this.deleteObject = function *(bucketName, key, options) {
+  this.deleteObject = async function(bucketName, key, options) {
     let bucket = this.getBucket(bucketName);
-    return yield bucket.deleteObject(key, options);
+    return await bucket.deleteObject(key, options);
   };
 });
 

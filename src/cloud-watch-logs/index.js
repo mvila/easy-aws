@@ -29,9 +29,9 @@ let CloudWatchLogs = KindaObject.extend('CloudWatchLogs', function() {
     return group;
   };
 
-  this.deleteGroup = function *(name) {
+  this.deleteGroup = async function(name) {
     let group = this.getGroup(name, { createIfMissing: false });
-    yield group.delete();
+    await group.delete();
   };
 
   this.getStream = function(groupName, streamName, options) {
@@ -40,19 +40,19 @@ let CloudWatchLogs = KindaObject.extend('CloudWatchLogs', function() {
     return stream;
   };
 
-  this.deleteStream = function *(groupName, streamName) {
+  this.deleteStream = async function(groupName, streamName) {
     let stream = this.getStream(groupName, streamName, { createIfMissing: false });
-    yield stream.delete();
+    await stream.delete();
   };
 
-  this.flushStream = function *(groupName, streamName) {
+  this.flushStream = async function(groupName, streamName) {
     let stream = this.getStream(groupName, streamName);
-    yield stream.flush();
+    await stream.flush();
   };
 
-  this.getEvents = function *(groupName, streamName, options) {
+  this.getEvents = async function(groupName, streamName, options) {
     let stream = this.getStream(groupName, streamName);
-    return yield stream.getEvents(options);
+    return await stream.getEvents(options);
   };
 
   this.putEvent = function(groupName, streamName, message, date) {

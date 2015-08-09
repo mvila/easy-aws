@@ -1,9 +1,8 @@
 'use strict';
 
 let _ = require('lodash');
-let co = require('co');
-let wait = require('co-wait');
 let KindaObject = require('kinda-object');
+let util = require('kinda-util').create();
 
 let Stream = KindaObject.extend('Stream', function() {
   this.creator = function(group, name, options = {}) {
@@ -17,27 +16,27 @@ let Stream = KindaObject.extend('Stream', function() {
     this.queue = [];
   };
 
-  this.initialize = function *() {
-    while (this.isInitializing) yield wait(100);
+  this.initialize = async function() {
+    while (this.isInitializing) await util.timeout(100);
     if (this.hasBeenInitialized) return;
     try {
       this.isInitializing = true;
-      yield this.group.initialize();
-      if (this.options.createIfMissing) yield this._create();
+      await this.group.initialize();
+      if (this.options.createIfMissing) await this._create();
       this.hasBeenInitialized = true;
     } finally {
       this.isInitializing = false;
     }
   };
 
-  this._create = function *() {
+  this._create = async function() {
     let done;
     do {
       try {
         if (this.group.logs.debugMode) {
           console.log(`creating '${this.name}' stream in '${this.group.name}' group`);
         }
-        yield this.group.logs.client.createLogStream({
+        await this.group.logs.client.createLogStream({
           logGroupName: this.group.name,
           logStreamName: this.name
         });
@@ -46,7 +45,7 @@ let Stream = KindaObject.extend('Stream', function() {
         if (err.code === 'ResourceAlreadyExistsException') {
           done = true;
         } else if (err.code === 'Throttling') {
-          yield wait(3000);
+          await util.timeout(3000);
         } else {
           throw err;
         }
@@ -54,11 +53,11 @@ let Stream = KindaObject.extend('Stream', function() {
     } while (!done);
   };
 
-  this.delete = function *() {
+  this.delete = async function() {
     if (this.group.logs.debugMode) {
       console.log(`deleting '${this.name}' stream in '${this.group.name}' group`);
     }
-    yield this.group.logs.client.deleteLogStream({
+    await this.group.logs.client.deleteLogStream({
       logGroupName: this.group.name,
       logStreamName: this.name
     });
@@ -66,7 +65,7 @@ let Stream = KindaObject.extend('Stream', function() {
     this.hasBeenInitialized = false;
   };
 
-  this.getEvents = function *(options = {}) {
+  this.getEvents = async function(options = {}) {
     let opts = {
       logGroupName: this.group.name,
       logStreamName: this.name
@@ -85,11 +84,11 @@ let Stream = KindaObject.extend('Stream', function() {
       if (nextToken) opts.nextToken = nextToken;
       let result;
       try {
-        yield this.initialize();
+        await this.initialize();
         if (this.group.logs.debugMode) {
           console.log(`getting events in '${this.name}' stream of '${this.group.name}' group`);
         }
-        result = yield this.group.logs.client.getLogEvents(opts);
+        result = await this.group.logs.client.getLogEvents(opts);
       } catch (err) {
         if (err.code === 'ResourceNotFoundException') {
           break;
@@ -117,17 +116,17 @@ let Stream = KindaObject.extend('Stream', function() {
   this.putEvent = function(message, date = new Date()) {
     if (!(_.isString(message) && message)) throw new Error('invalid event message');
     this.queue.push({ message, timestamp: date.valueOf() });
-    co(function *() {
-      yield this.flush(false);
-    }.bind(this)).catch(function(err) {
+    (async function() {
+      await this.flush(false);
+    }).call(this).catch(function(err) {
       console.error(err.stack || err);
     });
   };
 
-  this.flush = function *(waitIfIsAlreadyFlushing = true) {
+  this.flush = async function(waitIfIsAlreadyFlushing = true) {
     if (this.isFlushing) {
       if (waitIfIsAlreadyFlushing) {
-        while (this.isFlushing) yield wait(100);
+        while (this.isFlushing) await util.timeout(100);
       }
       return;
     }
@@ -136,14 +135,14 @@ let Stream = KindaObject.extend('Stream', function() {
       while (this.queue.length) {
         let events = this.queue;
         this.queue = [];
-        yield this.putEvents(events);
+        await this.putEvents(events);
       }
     } finally {
       this.isFlushing = false;
     }
   };
 
-  this.putEvents = function *(events) {
+  this.putEvents = async function(events) {
     while (events.length) {
       let batch = [];
       let size = 0;
@@ -154,20 +153,20 @@ let Stream = KindaObject.extend('Stream', function() {
         batch.push(event);
         events.shift();
       } while (events.length && batch.length < 10000);
-      yield this.putEventsBatch(batch);
+      await this.putEventsBatch(batch);
     }
   };
 
-  this.putEventsBatch = function *(events) {
+  this.putEventsBatch = async function(events) {
     let done = false;
     do {
-      let sequenceToken = yield this._getSequenceToken();
+      let sequenceToken = await this._getSequenceToken();
       try {
-        yield this.initialize();
+        await this.initialize();
         if (this.group.logs.debugMode) {
           console.log(`putting ${events.length} event(s) in '${this.name}' stream of '${this.group.name}' group`);
         }
-        let result = yield this.group.logs.client.putLogEvents({
+        let result = await this.group.logs.client.putLogEvents({
           logGroupName: this.group.name,
           logStreamName: this.name,
           logEvents: events,
@@ -178,15 +177,15 @@ let Stream = KindaObject.extend('Stream', function() {
       } catch (err) {
         if (err.code === 'InvalidSequenceTokenException') {
           this._setSequenceToken(undefined);
-          yield wait(500);
+          await util.timeout(500);
         } else if (err.code === 'DataAlreadyAcceptedException') {
           // TODO: not sure what to do with this execption
           this.setSequenceToken(undefined);
-          yield wait(500);
+          await util.timeout(500);
         } else if (err.code === 'OperationAbortedException') {
-          yield wait(500);
+          await util.timeout(500);
         } else if (err.code === 'Throttling') {
-          yield wait(3000);
+          await util.timeout(3000);
         } else {
           throw err;
         }
@@ -194,23 +193,23 @@ let Stream = KindaObject.extend('Stream', function() {
     } while (!done);
   };
 
-  this._describe = function *() {
+  this._describe = async function() {
     let result;
     let done = false;
     do {
       try {
-        yield this.initialize();
+        await this.initialize();
         if (this.group.logs.debugMode) {
           console.log(`describing '${this.name}' stream of '${this.group.name}' group`);
         }
-        result = yield this.group.logs.client.describeLogStreams({
+        result = await this.group.logs.client.describeLogStreams({
           logGroupName: this.group.name,
           logStreamNamePrefix: this.name
         });
         done = true;
       } catch (err) {
         if (err.code === 'Throttling') {
-          yield wait(3000);
+          await util.timeout(3000);
         } else {
           throw err;
         }
@@ -221,9 +220,9 @@ let Stream = KindaObject.extend('Stream', function() {
     return result;
   };
 
-  this._getSequenceToken = function *() {
+  this._getSequenceToken = async function() {
     if (!this._sequenceToken) {
-      let result = yield this._describe();
+      let result = await this._describe();
       this._sequenceToken = result.uploadSequenceToken;
     }
     return this._sequenceToken;

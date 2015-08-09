@@ -1,7 +1,6 @@
 'use strict';
 
 let _ = require('lodash');
-let wait = require('co-wait');
 let KindaObject = require('kinda-object');
 let util = require('kinda-util').create();
 
@@ -14,23 +13,23 @@ let Bucket = KindaObject.extend('Bucket', function() {
     this.options = options;
   };
 
-  this.initialize = function *() {
-    while (this.isInitializing) yield wait(100);
+  this.initialize = async function() {
+    while (this.isInitializing) await util.timeout(100);
     if (this.hasBeenInitialized) return;
     try {
       this.isInitializing = true;
-      if (this.options.createIfMissing) yield this._create();
+      if (this.options.createIfMissing) await this._create();
       this.hasBeenInitialized = true;
     } finally {
       this.isInitializing = false;
     }
   };
 
-  this._create = function *() {
+  this._create = async function() {
     // TODO
   };
 
-  this.delete = function *() {
+  this.delete = async function() {
     // TODO
   };
 
@@ -40,11 +39,11 @@ let Bucket = KindaObject.extend('Bucket', function() {
   //   ifModifiedSince
   //   ifUnmodifiedSince
   //   errorIfMissing (default: true)
-  this.getObject = function *(key, options = {}) {
+  this.getObject = async function(key, options = {}) {
     if (!(_.isString(key) && key)) throw new Error('invalid S3 object key');
     _.defaults(options, { errorIfMissing: true });
 
-    yield this.initialize();
+    await this.initialize();
 
     if (this.s3.debugMode) {
       console.log(`get '${key}' object from '${this.name}' bucket`);
@@ -63,7 +62,7 @@ let Bucket = KindaObject.extend('Bucket', function() {
 
     let res;
     try {
-      res = yield this.s3.client.getObject(params);
+      res = await this.s3.client.getObject(params);
     } catch (err) {
       if (err.code === 'NoSuchKey' && !options.errorIfMissing) {
         return undefined;
@@ -109,9 +108,9 @@ let Bucket = KindaObject.extend('Bucket', function() {
   //   cacheControl
   //   expires
   //   metadata
-  this.putObject = function *(key, body, options) {
+  this.putObject = async function(key, body, options) {
     if (!(_.isString(key) && key)) throw new Error('invalid S3 object key');
-    yield this.initialize();
+    await this.initialize();
     if (this.s3.debugMode) {
       console.log(`put '${key}' object in '${this.name}' bucket`);
     }
@@ -134,7 +133,7 @@ let Bucket = KindaObject.extend('Bucket', function() {
     if (!params.ContentType) {
       if (_.isString(body)) params.ContentType = 'text/plain; charset=utf-8';
     }
-    let res = yield this.s3.client.putObject(params);
+    let res = await this.s3.client.putObject(params);
     let result = util.pickAndRename(res, {
       'ETag': 'etag'
     });
@@ -142,9 +141,9 @@ let Bucket = KindaObject.extend('Bucket', function() {
     return result;
   };
 
-  this.deleteObject = function *(key, options) { // eslint-disable-line no-unused-vars
+  this.deleteObject = async function(key, options) { // eslint-disable-line no-unused-vars
     if (!(_.isString(key) && key)) throw new Error('invalid S3 object key');
-    yield this.initialize();
+    await this.initialize();
     if (this.s3.debugMode) {
       console.log(`delete '${key}' object in '${this.name}' bucket`);
     }
@@ -152,7 +151,7 @@ let Bucket = KindaObject.extend('Bucket', function() {
       Bucket: this.name,
       Key: key
     };
-    yield this.s3.client.deleteObject(params);
+    await this.s3.client.deleteObject(params);
   };
 });
 

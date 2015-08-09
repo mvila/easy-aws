@@ -1,9 +1,8 @@
 'use strict';
 
-require('co-mocha');
 let _ = require('lodash');
 let assert = require('chai').assert;
-let wait = require('co-wait');
+let util = require('kinda-util').create();
 let CloudWatchLogs = require('../src').CloudWatchLogs;
 
 suite('KindaAWS.CloudWatchLogs', function() {
@@ -23,19 +22,19 @@ suite('KindaAWS.CloudWatchLogs', function() {
       logs = CloudWatchLogs.create(options);
     });
 
-    test('put and get events', function *() {
+    test('put and get events', async function() {
       this.timeout(60000);
       for (let i = 1; i <= 1000; i++) {
         logs.putEvent('test', 'test', 'event #' + i);
-        yield wait(10);
+        await util.timeout(10);
       }
 
-      yield logs.flushStream('test', 'test');
+      await logs.flushStream('test', 'test');
 
-      let events = yield logs.getEvents('test', 'test');
+      let events = await logs.getEvents('test', 'test');
       assert.strictEqual(events.length, 1000);
 
-      yield logs.deleteGroup('test');
+      await logs.deleteGroup('test');
     });
   }
 });

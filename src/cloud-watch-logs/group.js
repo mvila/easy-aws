@@ -1,8 +1,8 @@
 'use strict';
 
 let _ = require('lodash');
-let wait = require('co-wait');
 let KindaObject = require('kinda-object');
+let util = require('kinda-util').create();
 let Stream = require('./stream');
 
 let Group = KindaObject.extend('Group', function() {
@@ -15,32 +15,32 @@ let Group = KindaObject.extend('Group', function() {
     this.streams = {};
   };
 
-  this.initialize = function *() {
-    while (this.isInitializing) yield wait(100);
+  this.initialize = async function() {
+    while (this.isInitializing) await util.timeout(100);
     if (this.hasBeenInitialized) return;
     try {
       this.isInitializing = true;
-      if (this.options.createIfMissing) yield this._create();
+      if (this.options.createIfMissing) await this._create();
       this.hasBeenInitialized = true;
     } finally {
       this.isInitializing = false;
     }
   };
 
-  this._create = function *() {
+  this._create = async function() {
     let done;
     do {
       try {
         if (this.logs.debugMode) console.log(`creating '${this.name}' group`);
-        yield this.logs.client.createLogGroup({ logGroupName: this.name });
+        await this.logs.client.createLogGroup({ logGroupName: this.name });
         done = true;
       } catch (err) {
         if (err.code === 'ResourceAlreadyExistsException') {
           done = true;
         } else if (err.code === 'OperationAbortedException') {
-          yield wait(500);
+          await util.timeout(500);
         } else if (err.code === 'Throttling') {
-          yield wait(3000);
+          await util.timeout(3000);
         } else {
           throw err;
         }
@@ -48,11 +48,11 @@ let Group = KindaObject.extend('Group', function() {
     } while (!done);
   };
 
-  this.delete = function *() {
+  this.delete = async function() {
     if (this.logs.debugMode) {
       console.log(`deleting '${this.name}' group`);
     }
-    yield this.logs.client.deleteLogGroup({
+    await this.logs.client.deleteLogGroup({
       logGroupName: this.name
     });
     this.streams = {};
@@ -69,9 +69,9 @@ let Group = KindaObject.extend('Group', function() {
     return stream;
   };
 
-  this.deleteStream = function *(name) {
+  this.deleteStream = async function(name) {
     let stream = this.getStream(name, { createIfMissing: false });
-    yield stream.delete();
+    await stream.delete();
   };
 });
 
