@@ -1,6 +1,6 @@
 {
   "name": "easy-aws",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Higher level API on top of AWS SDK",
   "author": "Manuel Vila <mvila@3base.com>",
   "license": "MIT",
