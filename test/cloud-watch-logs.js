@@ -1,40 +1,37 @@
 'use strict';
 
-let _ = require('lodash');
-let assert = require('chai').assert;
-let util = require('kinda-util').create();
-let CloudWatchLogs = require('../src').CloudWatchLogs;
+import { assert } from 'chai';
+import sleep from 'sleep-promise';
+import { CloudWatchLogs } from '../src';
 
-suite('KindaAWS.CloudWatchLogs', function() {
+describe('CloudWatchLogs', function() {
   let logs;
 
   let config;
   try {
     config = require('./aws-config');
   } catch (err) {
-    console.warn('KindaAWS.CloudWatchLogs tests skipped because the AWS config is missing');
+    console.warn('S3 tests skipped because the AWS config is missing');
+    return;
   }
 
-  if (config) {
-    suiteSetup(function() {
-      let options = _.clone(config);
-      options.debugMode = true;
-      logs = CloudWatchLogs.create(options);
-    });
+  before(function() {
+    let options = Object.assign({ debugMode: true }, config);
+    logs = new CloudWatchLogs(options);
+  });
 
-    test('put and get events', async function() {
-      this.timeout(60000);
-      for (let i = 1; i <= 1000; i++) {
-        logs.putEvent('test', 'test', 'event #' + i);
-        await util.timeout(10);
-      }
+  it('should put and get events', async function() {
+    this.timeout(60000);
+    for (let i = 1; i <= 1000; i++) {
+      logs.putEvent('test', 'test', 'event #' + i);
+      await sleep(10);
+    }
 
-      await logs.flushStream('test', 'test');
+    await logs.flushStream('test', 'test');
 
-      let events = await logs.getEvents('test', 'test');
-      assert.strictEqual(events.length, 1000);
+    let events = await logs.getEvents('test', 'test');
+    assert.strictEqual(events.length, 1000);
 
-      await logs.deleteGroup('test');
-    });
-  }
+    await logs.deleteGroup('test');
+  });
 });

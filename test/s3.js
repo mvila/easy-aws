@@ -1,13 +1,12 @@
 'use strict';
 
-let _ = require('lodash');
-let assert = require('chai').assert;
-let S3 = require('../src').S3;
+import { assert } from 'chai';
+import { S3 } from '../src';
 
-suite('KindaAWS.S3', function() {
+describe('S3', function() {
   let bucket;
 
-  let catchError = async function(fn) {
+  async function catchError(fn) {
     let err;
     try {
       await fn();
@@ -15,49 +14,47 @@ suite('KindaAWS.S3', function() {
       err = e;
     }
     return err;
-  };
+  }
 
   let config;
   try {
     config = require('./aws-config');
   } catch (err) {
-    console.warn('KindaAWS.S3 tests skipped because the AWS config is missing');
+    console.warn('S3 tests skipped because the AWS config is missing');
+    return;
   }
 
-  if (config) {
-    suiteSetup(function() {
-      let options = _.clone(config);
-      options.debugMode = true;
-      let s3 = S3.create(options);
-      bucket = s3.getBucket('kinda-aws-s3-test');
+  before(function() {
+    let options = Object.assign({ debugMode: true }, config);
+    let s3 = new S3(options);
+    bucket = s3.getBucket('easy-aws-s3-test');
+  });
+
+  it('should put, get and delete objects', async function() {
+    this.timeout(30000);
+
+    let body = 'Hello, World!';
+
+    let result = await bucket.putObject('aaa', body, {
+      metadata: { 'is-cool': 'always' }
     });
+    let etag = result.etag;
+    assert.ok(etag);
 
-    test('put, get and delete objects', async function() {
-      this.timeout(30000);
+    result = await bucket.getObject('aaa');
+    assert.strictEqual(result.contentType, 'text/plain; charset=utf-8');
+    assert.strictEqual(result.etag, etag);
+    assert.strictEqual(result.metadata['is-cool'], 'always');
+    assert.strictEqual(result.body, 'Hello, World!');
 
-      let body = 'Hello, World!';
+    await bucket.deleteObject('aaa');
 
-      let result = await bucket.putObject('aaa', body, {
-        metadata: { 'is-cool': 'always' }
-      });
-      let etag = result.etag;
-      assert.ok(etag);
-
+    let err = await catchError(async function() {
       result = await bucket.getObject('aaa');
-      assert.strictEqual(result.contentType, 'text/plain; charset=utf-8');
-      assert.strictEqual(result.etag, etag);
-      assert.strictEqual(result.metadata['is-cool'], 'always');
-      assert.strictEqual(result.body, 'Hello, World!');
-
-      await bucket.deleteObject('aaa');
-
-      let err = await catchError(async function() {
-        result = await bucket.getObject('aaa');
-      });
-      assert.instanceOf(err, Error);
-
-      result = await bucket.getObject('aaa', { errorIfMissing: false });
-      assert.isUndefined(result);
     });
-  }
+    assert.instanceOf(err, Error);
+
+    result = await bucket.getObject('aaa', { errorIfMissing: false });
+    assert.isUndefined(result);
+  });
 });

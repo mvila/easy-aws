@@ -1,8 +1,4 @@
 'use strict';
 
-let KindaAWS = {
-  CloudWatchLogs: require('./cloud-watch-logs'),
-  S3: require('./s3')
-};
-
-module.exports = KindaAWS;
+export { CloudWatchLogs } from './cloud-watch-logs';
+export { S3 } from './s3';
