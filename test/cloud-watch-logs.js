@@ -11,7 +11,7 @@ describe('CloudWatchLogs', function() {
   try {
     config = require('./aws-config');
   } catch (err) {
-    console.warn('S3 tests skipped because the AWS config is missing');
+    console.warn('CloudWatchLogs tests skipped because the AWS config is missing');
     return;
   }
 
